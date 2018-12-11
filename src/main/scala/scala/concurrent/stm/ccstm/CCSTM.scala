@@ -234,7 +234,7 @@ private[ccstm] object CCSTM extends GV6 {
 //            // attached to this thread.  Big trouble!
 //            assert(false) // CCSTM on top of scala-stm doesn't have escaped contexts, this shouldn't happen
 //            owningRoot.requestRollback(
-//                Txn.OptimisticFailureCause('conflicting_reentrant_nontxn_write, Some(handle)))
+//                Txn.OptimisticFailureCause(sym"conflicting_reentrant_nontxn_write", Some(handle)))
 //          }
 
           owningRoot.awaitCompleted(currentTxn, handle)

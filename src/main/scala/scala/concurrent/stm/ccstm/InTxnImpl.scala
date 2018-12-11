@@ -99,7 +99,7 @@ private[ccstm] class InTxnImpl extends InTxnRefOps {
   def currentLevel: NestingLevel = {
     if (_subsumptionParent != null) {
       _subsumptionAllowed = false
-      _subsumptionParent.forceRollback(OptimisticFailureCause('restart_to_materialize_current_level, None))
+      _subsumptionParent.forceRollback(OptimisticFailureCause(sym"restart_to_materialize_current_level", None))
       throw RollbackError
     }
     _currentLevel
@@ -140,13 +140,13 @@ private[ccstm] class InTxnImpl extends InTxnRefOps {
 
     // This test is _almost_ symmetric.  Tie goes to neither.
     if (this._priority <= owningRoot.txn._priority) {
-      resolveAsWWLoser(owningRoot, contended, ownerIsCommitting = false, msg = 'owner_has_priority)
+      resolveAsWWLoser(owningRoot, contended, ownerIsCommitting = false, msg = sym"owner_has_priority")
     } else {
       // This will resolve the conflict regardless of whether it succeeds or fails.
-      val s = owningRoot.requestRollback(OptimisticFailureCause('steal_by_higher_priority, Some(contended)))
+      val s = owningRoot.requestRollback(OptimisticFailureCause(sym"steal_by_higher_priority", Some(contended)))
       if (s == Preparing || s == Committing) {
         // owner can't be remotely canceled
-        val msg = if (s == Preparing) 'owner_is_preparing else 'owner_is_committing
+        val msg = if (s == Preparing) sym"owner_is_preparing" else sym"owner_is_committing"
         resolveAsWWLoser(owningRoot, contended, ownerIsCommitting = true, msg = msg)
       }
     }
@@ -349,7 +349,7 @@ private[ccstm] class InTxnImpl extends InTxnRefOps {
         case x if x != RollbackError && !_currentLevel.executor.isControlFlow(x) =>
           // partial rollback is required, but we can't do it here
           _subsumptionAllowed = false
-          _currentLevel.forceRollback(OptimisticFailureCause('restart_to_enable_partial_rollback, Some(x)))
+          _currentLevel.forceRollback(OptimisticFailureCause(sym"restart_to_enable_partial_rollback", Some(x)))
           throw RollbackError
       }
     } finally {
@@ -748,7 +748,7 @@ private[ccstm] class InTxnImpl extends InTxnRefOps {
   private def consultExternalDecider(): Boolean = {
     try {
       if (!externalDecider.shouldCommit(this))
-        _currentLevel.forceRollback(OptimisticFailureCause('external_decision, None))
+        _currentLevel.forceRollback(OptimisticFailureCause(sym"external_decision", None))
     } catch {
       case x: Throwable => _currentLevel.forceRollback(UncaughtExceptionCause(x))
     }
@@ -838,13 +838,13 @@ private[ccstm] class InTxnImpl extends InTxnRefOps {
       val m1 = handle.meta
       if (!changing(m1) || owner(m1) == _slot) {
         if (version(m1) != ver)
-          return 'stale_read
+          return sym"stale_read"
         // okay
         return null
       } else if (owner(m1) == nonTxnSlot) {
         // non-txn updates don't set changing unless they will install a new
         // value, so we are the only party that can yield
-        return 'read_vs_nontxn_write
+        return sym"read_vs_nontxn_write"
       } else {
         // Either this txn or the owning txn must roll back.  We choose to
         // give precedence to the owning txn, as it is the writer and is
@@ -865,7 +865,7 @@ private[ccstm] class InTxnImpl extends InTxnRefOps {
           val m2 = handle.meta
           if (changing(m2) && owner(m2) == owner(m1)) {
             if (!s.isInstanceOf[RolledBack])
-              return 'read_vs_pending_commit
+              return sym"read_vs_pending_commit"
 
             stealHandle(handle, m2, o)
           }

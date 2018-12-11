@@ -328,7 +328,7 @@ class CommitBarrierSuite extends FunSuite {
         t.start()
         txn.afterCommit { _ => t.join() }
         if (i < 10)
-          Txn.rollback(Txn.OptimisticFailureCause('test, None))
+          Txn.rollback(Txn.OptimisticFailureCause(sym"test", None))
         "hello"
       }
       assert(z === Right("hello"))

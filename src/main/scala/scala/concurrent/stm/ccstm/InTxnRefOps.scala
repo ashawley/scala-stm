@@ -113,7 +113,7 @@ private[ccstm] abstract class InTxnRefOps extends AccessHistory with AbstractInT
 
         def apply(level: NestingLevel): Unit =
           if (!isValid) {
-            level.requestRollback(OptimisticFailureCause('invalid_getWith, Some(handle)))
+            level.requestRollback(OptimisticFailureCause(sym"invalid_getWith", Some(handle)))
           }
 
         private def isValid: Boolean = {
@@ -162,7 +162,7 @@ private[ccstm] abstract class InTxnRefOps extends AccessHistory with AbstractInT
 
         def apply(level: NestingLevel): Unit = {
           if (!isValid)
-            level.requestRollback(OptimisticFailureCause('invalid_relaxed_get, Some(handle)))
+            level.requestRollback(OptimisticFailureCause(sym"invalid_relaxed_get", Some(handle)))
         }
 
         private def isValid: Boolean = {
@@ -215,7 +215,7 @@ private[ccstm] abstract class InTxnRefOps extends AccessHistory with AbstractInT
         while (changing(m0)) {
           if (status != Active) {
             // can't wait
-            forceRollback(OptimisticFailureCause('late_invalid_unrecordedRead, Some(handle)))
+            forceRollback(OptimisticFailureCause(sym"late_invalid_unrecordedRead", Some(handle)))
             throw RollbackError
           }
           weakAwaitUnowned(handle, m0)
@@ -224,7 +224,7 @@ private[ccstm] abstract class InTxnRefOps extends AccessHistory with AbstractInT
         if (isNewerThanReadVersion(version(m0))) {
           if (status != Active) {
             // can't wait
-            forceRollback(OptimisticFailureCause('late_invalid_unrecordedRead, Some(handle)))
+            forceRollback(OptimisticFailureCause(sym"late_invalid_unrecordedRead", Some(handle)))
             throw RollbackError
           }
           revalidate(version(m0))
@@ -376,7 +376,7 @@ private[ccstm] abstract class InTxnRefOps extends AccessHistory with AbstractInT
 
           def apply(level: NestingLevel): Unit =
             if (!isValid) {
-              level.requestRollback(OptimisticFailureCause('invalid_getWith, Some(handle)))
+              level.requestRollback(OptimisticFailureCause(sym"invalid_getWith", Some(handle)))
             }
 
           private def isValid: Boolean = {

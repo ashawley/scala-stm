@@ -248,7 +248,7 @@ class CallbackSuite extends FunSuite {
       x += tries
       tries += 1
       if (tries < 100)
-        Txn.rollback(Txn.OptimisticFailureCause('manual_failure, None))
+        Txn.rollback(Txn.OptimisticFailureCause(sym"manual_failure", None))
     }
     assert(x.single() === 99)
     assert(tries === 100)
@@ -263,7 +263,7 @@ class CallbackSuite extends FunSuite {
       tries += 1
       Txn.beforeCommit { implicit t =>
         if (tries < 100)
-          Txn.rollback(Txn.OptimisticFailureCause('manual_failure, None))
+          Txn.rollback(Txn.OptimisticFailureCause(sym"manual_failure", None))
       }
     }
     assert(x.single() === 99)
@@ -279,7 +279,7 @@ class CallbackSuite extends FunSuite {
       x() = i
       Txn.whilePreparing { _ =>
         observed = i
-        if (i < 4) Txn.rollback(Txn.OptimisticFailureCause('test, None))
+        if (i < 4) Txn.rollback(Txn.OptimisticFailureCause(sym"test", None))
       }
     }
     assert(x.single() == 4)
